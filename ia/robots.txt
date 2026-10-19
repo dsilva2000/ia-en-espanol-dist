@@ -1,0 +1,5 @@
+User-Agent: *
+Allow: /ia/
+Disallow: /ia/api/
+
+Sitemap: https://mancolab.com/ia/sitemap.xml

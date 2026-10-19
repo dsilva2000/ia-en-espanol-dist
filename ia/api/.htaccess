@@ -1,0 +1,15 @@
+# Only the signup endpoint is reachable in /ia/api/
+Options -Indexes
+<FilesMatch ".*">
+  Require all denied
+</FilesMatch>
+<Files "suscribir.php">
+  Require all granted
+</Files>
+<IfModule mod_headers.c>
+  Header always set Cache-Control "no-store"
+  Header always unset Set-Cookie
+</IfModule>
+<IfModule LiteSpeed>
+  CacheDisable public /
+</IfModule>

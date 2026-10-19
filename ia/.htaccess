@@ -1,0 +1,56 @@
+# IA en Español — public_html/ia/.htaccess (static Next.js export, basePath /ia, trailing slashes)
+# No http->https rule here on purpose.
+Options -Indexes -MultiViews
+DirectoryIndex index.html
+ErrorDocument 404 /ia/404.html
+AddDefaultCharset utf-8
+AddType text/plain .txt
+AddType application/xml .xml
+AddType application/json .json
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /ia/
+  # Block dotfiles (except .well-known)
+  RewriteRule (^|/)\.(?!well-known/) - [F,L]
+  # Real files and the API pass straight through
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+  # /ia/faq -> /ia/faq/ when the folder exists (clean URLs with trailing slash)
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^(.*[^/])$ /ia/$1/ [R=301,L]
+  # Directory with index.html
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_FILENAME}/index.html -f
+  RewriteRule ^ - [L]
+  # Anything else under /ia/ that does not exist -> custom 404 (keeps WordPress out)
+  RewriteRule ^ - [R=404,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # HTML and RSC payloads: always revalidate (daily updates)
+  <FilesMatch "\.(html|txt)$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(xml|json)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+  <FilesMatch "\.(png|jpe?g|gif|webp|svg|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+# Hashed Next.js assets never change: cache 1 year (rule lives in _next/.htaccess)
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json application/xml image/svg+xml
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+</IfModule>
